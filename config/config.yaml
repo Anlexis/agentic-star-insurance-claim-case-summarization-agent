@@ -1,0 +1,32 @@
+# Runtime parameters — loaded by AgentRegistry, passed as Graph(config=...).
+# Separate from config/agent.yaml (the static manifest).
+# In the standalone deployment the same file is read by _runtime_config()
+# (src/graph/graph.py) and forwarded to the inner domain graph, which injects
+# the settings into the node constructors.
+
+max_retry: 3
+timeout_s: 30
+
+# Damages exposure severity bands, in the claim's currency unit. Net exposure
+# is classified at the highest band whose threshold it reaches; below the
+# moderate threshold the claim is "low". The bands drive the recommended
+# action (routing vs escalation), so a malformed value is not forwarded and
+# the node keeps its built-in defaults rather than silently reclassifying.
+damages:
+  moderate_threshold: 100000
+  high_threshold: 1000000
+  severe_threshold: 10000000
+
+# Summary-generation settings. The current build synthesises the six summary
+# sections deterministically from the claim documents and reads none of these;
+# they are forwarded to the inner graph so a live-LLM build can consume them
+# without a config-shape change. Temperature 0.0 for a regulated domain.
+llm:
+  system_prompt_template: "prompts/claim_summary.j2"
+  temperature: 0.0
+  max_tokens: 4000
+
+# The output boundary in the post_process slot is always active; the flag is
+# declared so an operator inspection of the runtime config sees it.
+security:
+  output_gate_enabled: true
